@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: fadel_postgres
+    environment:
+      POSTGRES_DB: fadel_db
+      POSTGRES_USER: fadel_user
+      POSTGRES_PASSWORD: Fadel2024!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: fadel_redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: fadel_backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ..:/workspaces/FadelDelivery:cached
+    environment:
+      DATABASE_URL: "postgresql://fadel_user:Fadel2024!@postgres:5432/fadel_db?schema=public"
+      REDIS_URL: "redis://redis:6379"
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:

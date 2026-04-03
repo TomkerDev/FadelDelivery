@@ -1,0 +1,6 @@
+node_modules/
+.env
+.dart_tool/
+build/
+.vs/
+.devcontainer/ (optionnel, mais utile de le garder si tu veux que d'autres utilisent ta config Docker)
