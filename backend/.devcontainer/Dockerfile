@@ -6,3 +6,18 @@ RUN apt-get update && apt-get install -y postgresql-client && apt-get clean
 
 # Installation globale de Prisma pour faciliter les migrations [cite: 151]
 RUN npm install -g prisma
+# 1. Définir le dossier de travail dans le conteneur
+WORKDIR /workspaces/FadelDelivery
+
+# 2. Copier les fichiers de dépendances (optimisation du cache Docker)
+COPY package*.json ./
+
+# 3. Installer les dépendances du projet
+RUN npm install
+
+# 4. Copier le reste du code source
+COPY . .
+
+# 5. La commande MAGIQUE qui garde le serveur allumé
+# Elle génère Prisma et lance ton script "dev" du package.json
+CMD npx prisma generate && npm run dev
