@@ -67,6 +67,21 @@ services:
       interval: 10s
     networks:
       - fadel_network
+  
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: fadel_prisma_studio
+    command: npx prisma studio --browser none
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      - postgres
+    networks:
+      - fadel_network
 
 networks:
   fadel_network:
