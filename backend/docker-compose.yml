@@ -1,39 +1,76 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16
-    container_name: fadel_postgres
-    environment:
-      POSTGRES_DB: fadel_db
-      POSTGRES_USER: fadel_user
-      POSTGRES_PASSWORD: Fadel2024!
+  # 🌐 REVERSE PROXY : Gère le trafic entrant et le SSL
+  gateway:
+    image: nginx:alpine
+    container_name: fadel_gateway
     ports:
-      - "5432:5432"
+      - "80:80"
+      - "443:443"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    networks:
+      - fadel_network
 
-  redis:
-    image: redis:7-alpine
-    container_name: fadel_redis
-    ports:
-      - "6379:6379"
-
+  # ⚙️ BACKEND : Node.js Stateless
   backend:
     build:
       context: .
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: ./Dockerfile # Utiliser un Dockerfile de prod (multi-stage)
     container_name: fadel_backend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ..:/workspaces/FadelDelivery:cached
+    restart: always
     environment:
-      DATABASE_URL: "postgresql://fadel_user:Fadel2024!@postgres:5432/fadel_db?schema=public"
+      # Utilisation des noms de services Docker comme host
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public"
       REDIS_URL: "redis://redis:6379"
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fadel_network
+
+  # 🐘 DATABASE : PostgreSQL 16
+  postgres:
+    image: postgres:16-alpine
+    container_name: fadel_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fadel_network
+
+  # ⚡ CACHE : Redis 7 (GPS & Events)
+  redis:
+    image: redis:7-alpine
+    container_name: fadel_redis
+    restart: always
+    command: redis-server --appendonly yes # Persistance des données Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+    networks:
+      - fadel_network
+
+networks:
+  fadel_network:
+    driver: bridge
 
 volumes:
   postgres_data:
