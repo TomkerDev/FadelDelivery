@@ -20,4 +20,4 @@ COPY . .
 
 # 5. La commande MAGIQUE qui garde le serveur allumé
 # Elle génère Prisma et lance ton script "dev" du package.json
-CMD npx prisma generate && npm run dev
+CMD npx prisma db push && npx prisma generate && npx ts-node app.ts

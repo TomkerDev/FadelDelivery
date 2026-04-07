@@ -71,7 +71,7 @@ services:
   prisma-studio:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: .devcontainer/Dockerfile
     container_name: fadel_prisma_studio
     command: npx prisma studio --browser none
     ports:
