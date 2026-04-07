@@ -3,14 +3,15 @@ FROM mcr.microsoft.com/devcontainers/javascript-node:20
 
 # Installation des outils système nécessaires (PostgreSQL client pour les scripts) [cite: 52]
 RUN apt-get update && apt-get install -y postgresql-client && apt-get clean
+# Installation de Prisma en version 6 spécifiquement
+RUN npm install -g prisma@6.0.0
 
-# Installation globale de Prisma pour faciliter les migrations [cite: 151]
-RUN npm install -g prisma
 # 1. Définir le dossier de travail dans le conteneur
 WORKDIR /workspaces/FadelDelivery
 
 # 2. Copier les fichiers de dépendances (optimisation du cache Docker)
 COPY package*.json ./
+RUN npm install @prisma/client@6.0.0
 
 # 3. Installer les dépendances du projet
 RUN npm install
