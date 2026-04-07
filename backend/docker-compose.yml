@@ -20,7 +20,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./Dockerfile # Utiliser un Dockerfile de prod (multi-stage)
+      dockerfile: .devcontainer/Dockerfile # Utiliser un Dockerfile de prod (multi-stage)
     container_name: fadel_backend
     restart: always
     environment:
